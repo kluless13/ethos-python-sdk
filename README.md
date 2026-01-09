@@ -260,7 +260,7 @@ page = client.vouches.list(limit=100, offset=200)
 
 ```bash
 # Clone the repo
-git clone https://github.com/onetrillionx/ethos-python-sdk.git
+git clone https://github.com/kluless13/ethos-python-sdk.git
 cd ethos-python-sdk
 
 # Install in development mode
@@ -294,7 +294,7 @@ Ethos Network provides a REST API but no official Python SDK. This library fills
 
 - [Ethos Network](https://ethos.network) - The protocol
 - [Ethos API Docs](https://developers.ethos.network) - Official API documentation
-- [ethos-research](https://github.com/onetrillionx/ethos-research) - Research using this SDK
+- [ethos-research](https://github.com/kluless13/ethos-research) - Research using this SDK
 
 ---
 

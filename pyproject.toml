@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ethos-py"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unofficial Python SDK for Ethos Network API"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [
-    { name = "onetrillionx", email = "onetrillionx@proton.me" }
+    { name = "kluless13" }
 ]
 keywords = [
     "ethos",
@@ -60,10 +60,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/onetrillionx/ethos-python-sdk"
-Documentation = "https://github.com/onetrillionx/ethos-python-sdk#readme"
-Repository = "https://github.com/onetrillionx/ethos-python-sdk"
-Issues = "https://github.com/onetrillionx/ethos-python-sdk/issues"
+Homepage = "https://github.com/kluless13/ethos-python-sdk"
+Documentation = "https://github.com/kluless13/ethos-python-sdk#readme"
+Repository = "https://github.com/kluless13/ethos-python-sdk"
+Issues = "https://github.com/kluless13/ethos-python-sdk/issues"
 
 [tool.hatch.build.targets.sdist]
 include = [
