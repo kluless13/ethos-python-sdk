@@ -8,7 +8,7 @@ from collections.abc import AsyncIterator, Iterator
 from typing import TYPE_CHECKING, Any
 
 from ethos.resources.base import AsyncBaseResource, BaseResource
-from ethos.types.profile import Profile
+from ethos.types.profile import GlobalProfileStats, Profile
 
 if TYPE_CHECKING:
     pass
@@ -154,6 +154,16 @@ class Profiles(BaseResource[Profile]):
             return self._parse_list(response)
         return self._parse_list(response.get("values", response.get("data", [])))
 
+    def stats(self) -> GlobalProfileStats:
+        """
+        Get overall profile statistics for the Ethos network.
+
+        Returns:
+            Global profile statistics including active profiles and invites available.
+        """
+        response = self._http.get(f"{self._path}/stats")
+        return GlobalProfileStats.model_validate(response)
+
 
 class AsyncProfiles(AsyncBaseResource[Profile]):
     """Async Profiles API resource."""
@@ -227,3 +237,8 @@ class AsyncProfiles(AsyncBaseResource[Profile]):
         if isinstance(response, list):
             return self._parse_list(response)
         return self._parse_list(response.get("values", response.get("data", [])))
+
+    async def stats(self) -> GlobalProfileStats:
+        """Get overall profile statistics for the Ethos network."""
+        response = await self._http.get(f"{self._path}/stats")
+        return GlobalProfileStats.model_validate(response)

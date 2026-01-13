@@ -28,19 +28,25 @@ from ethos import Ethos
 # Initialize client
 client = Ethos()
 
-# Get a profile by Twitter handle
-profile = client.profiles.get_by_twitter("vitalikbuterin")
-print(f"{profile.twitter_handle}: {profile.credibility_score}")
+# Get a user by Twitter handle
+user = client.users.get_by_twitter("vitalikbuterin")
+print(f"@{user.username}: Score {user.score}")
 
-# List all vouches
-for vouch in client.vouches.list():
-    print(f"{vouch.author_profile_id} vouched for {vouch.target_profile_id}")
+# Get profile statistics
+stats = client.profiles.stats()
+print(f"Active profiles: {stats.active_profiles}")
 
-# Get vouches for a specific profile
-vouches = client.vouches.list(target_profile_id=123)
+# List reputation markets
+for market in client.markets.list():
+    print(f"Profile {market.profile_id}: {market.trust_percentage:.1f}% trust")
 
-# Search users
-users = client.profiles.search("ethereum")
+# Get vouches for a profile
+vouches = client.vouches.for_profile(profile_id=8)
+for vouch in vouches:
+    print(f"Staked: {vouch.staked_eth:.4f} ETH")
+
+# Search profiles
+profiles = client.profiles.search("ethereum")
 ```
 
 ---
@@ -59,13 +65,28 @@ users = client.profiles.search("ethereum")
 
 ## Usage
 
-### Profiles
+### Users
 
 ```python
 from ethos import Ethos
 
 client = Ethos()
 
+# Get user by Twitter/X handle
+user = client.users.get_by_twitter("vitalikbuterin")
+print(f"Score: {user.score}")
+print(f"Username: {user.username}")
+
+# Get user by Ethereum address
+user = client.users.get_by_address("0x123...")
+
+# Get user by profile ID
+user = client.users.get(profile_id=123)
+```
+
+### Profiles
+
+```python
 # Get profile by ID
 profile = client.profiles.get(123)
 
@@ -78,6 +99,11 @@ profile = client.profiles.get_by_twitter("username")
 # Search profiles
 profiles = client.profiles.search("query", limit=20)
 
+# Get global profile statistics
+stats = client.profiles.stats()
+print(f"Active profiles: {stats.active_profiles}")
+print(f"Invites available: {stats.invites_available}")
+
 # List all profiles (auto-paginated)
 for profile in client.profiles.list():
     print(profile.credibility_score)
@@ -86,18 +112,23 @@ for profile in client.profiles.list():
 ### Vouches
 
 ```python
-# List all vouches
-vouches = client.vouches.list()
+# Get vouches received by a profile
+vouches = client.vouches.for_profile(profile_id=123)
 
-# Filter vouches
-vouches = client.vouches.list(
+# Get vouches given by a profile
+vouches = client.vouches.by_profile(profile_id=456)
+
+# Check vouch between two profiles
+vouch = client.vouches.between(voucher_id=456, target_id=123)
+
+# Filter vouches with multiple criteria
+for vouch in client.vouches.list(
     target_profile_id=123,      # Vouches received by profile
     author_profile_id=456,      # Vouches given by profile
-)
-
-# Iterate through all vouches (auto-pagination)
-for vouch in client.vouches.list():
-    print(f"Amount: {vouch.amount_wei} wei")
+):
+    print(f"Staked: {vouch.staked_eth:.4f} ETH")
+    print(f"Balance: {vouch.amount_eth:.4f} ETH")
+    print(f"Active: {vouch.is_active}")
 ```
 
 ### Reviews
@@ -117,14 +148,27 @@ negative_reviews = client.reviews.list(score="negative")
 ### Markets (Reputation Trading)
 
 ```python
-# List reputation markets
-markets = client.markets.list()
+# List all reputation markets
+for market in client.markets.list():
+    print(f"Profile {market.profile_id}: {market.trust_percentage:.1f}% trust")
 
-# Get specific market
+# Get market for a specific profile
+market = client.markets.get_by_profile(profile_id=123)
+
+# Get market by ID
 market = client.markets.get(market_id=1)
 
-print(f"Trust price: {market.trust_price}")
-print(f"Distrust price: {market.distrust_price}")
+# Market properties
+print(f"Trust price: {market.trust_price}")        # 0.0 to 1.0
+print(f"Distrust price: {market.distrust_price}")  # 0.0 to 1.0
+print(f"Trust %: {market.trust_percentage}")       # 0 to 100
+print(f"Sentiment: {market.market_sentiment}")     # "bullish", "bearish", "neutral"
+print(f"Volatile: {market.is_volatile}")           # True if close to 50/50
+
+# Get top markets
+most_trusted = client.markets.most_trusted(limit=10)
+most_distrusted = client.markets.most_distrusted(limit=10)
+top_volume = client.markets.top_by_volume(limit=10)
 ```
 
 ### Activities
@@ -197,22 +241,31 @@ client = Ethos(
 All responses are Pydantic models with full type hints:
 
 ```python
-from ethos.types import Profile, Vouch, Review
+from ethos.types import Profile, Vouch, Market, User, GlobalProfileStats
 
+# Profile model
 profile: Profile = client.profiles.get(123)
-
-# Access typed attributes
 profile.id                    # int
 profile.address               # str
 profile.twitter_handle        # Optional[str]
 profile.credibility_score     # int
-profile.score_level           # str
-profile.created_at            # datetime
+profile.score_level           # "untrusted", "questionable", "neutral", "reputable", "exemplary"
 
-# Convert to dict
+# Vouch model  
+vouch: Vouch = client.vouches.get(456)
+vouch.staked_wei              # int (wei amount)
+vouch.staked_eth              # float (ETH amount)
+vouch.is_staked               # bool
+vouch.is_active               # bool (staked and not archived)
+
+# Market model
+market: Market = client.markets.get(789)
+market.trust_price            # float (0.0 to 1.0)
+market.trust_percentage       # float (0 to 100)
+market.market_sentiment       # "bullish", "bearish", "neutral"
+
+# Convert to dict/JSON
 profile.model_dump()
-
-# Convert to JSON
 profile.model_dump_json()
 ```
 

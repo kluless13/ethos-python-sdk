@@ -24,12 +24,12 @@ class Vouch(BaseModel):
     target_profile_id: int = Field(..., alias="subjectProfileId")
 
     # Staking details
-    staked: bool = True
+    staked: str = "0"  # Staked amount in wei (string because wei can be very large)
     archived: bool = False
     unhealthy: bool = False
 
     # Amount (in wei)
-    balance: str = "0"  # String because wei can be very large
+    balance: str = "0"  # Balance in wei
 
     # Activity tracking
     activity_checkpoints: dict = Field(default_factory=dict, alias="activityCheckpoints")
@@ -44,19 +44,34 @@ class Vouch(BaseModel):
     }
 
     @property
+    def staked_wei(self) -> int:
+        """Get the staked amount in wei as an integer."""
+        return int(self.staked) if self.staked else 0
+
+    @property
+    def staked_eth(self) -> float:
+        """Get the staked amount in ETH."""
+        return self.staked_wei / 1e18
+
+    @property
     def amount_wei(self) -> int:
-        """Get the vouch amount in wei as an integer."""
-        return int(self.balance)
+        """Get the vouch balance in wei as an integer."""
+        return int(self.balance) if self.balance else 0
 
     @property
     def amount_eth(self) -> float:
-        """Get the vouch amount in ETH."""
+        """Get the vouch balance in ETH."""
         return self.amount_wei / 1e18
 
     @property
+    def is_staked(self) -> bool:
+        """Check if there's a non-zero staked amount."""
+        return self.staked_wei > 0
+
+    @property
     def is_active(self) -> bool:
-        """Check if the vouch is currently active."""
-        return self.staked and not self.archived
+        """Check if the vouch is currently active (staked and not archived)."""
+        return self.is_staked and not self.archived
 
     @property
     def voucher_id(self) -> int:

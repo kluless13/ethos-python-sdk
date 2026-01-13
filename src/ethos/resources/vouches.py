@@ -37,6 +37,46 @@ class Vouches(BaseResource[Vouch]):
         response = self._http.get(f"{self._path}/{vouch_id}")
         return self._parse_item(response)
 
+    def _paginate_post(
+        self,
+        path: str,
+        body: dict[str, Any],
+        limit: int = 100,
+    ) -> Iterator[Vouch]:
+        """
+        Iterate through pages using POST with body params.
+
+        The vouches API uses POST with body instead of GET with query params.
+        """
+        offset = 0
+
+        while True:
+            body["limit"] = limit
+            body["offset"] = offset
+
+            response = self._http.post(path, json=body)
+
+            # Handle different response formats
+            if isinstance(response, list):
+                items = response
+            elif "data" in response:
+                items = response["data"]
+            elif "values" in response:
+                items = response["values"]
+            else:
+                items = response.get("results", [])
+
+            if not items:
+                break
+
+            for item in items:
+                yield self._parse_item(item)
+
+            if len(items) < limit:
+                break
+
+            offset += limit
+
     def list(
         self,
         author_profile_id: int | None = None,
@@ -58,18 +98,19 @@ class Vouches(BaseResource[Vouch]):
         Yields:
             Vouch objects
         """
-        params: dict[str, Any] = {}
+        body: dict[str, Any] = {}
 
-        if author_profile_id is not None:
-            params["authorProfileId"] = author_profile_id
+        # Build subject/author profile ID lists for POST body
         if target_profile_id is not None:
-            params["subjectProfileId"] = target_profile_id
+            body["subjectProfileIds"] = [target_profile_id]
+        if author_profile_id is not None:
+            body["authorProfileIds"] = [author_profile_id]
         if staked is not None:
-            params["staked"] = staked
+            body["staked"] = staked
         if archived is not None:
-            params["archived"] = archived
+            body["archived"] = archived
 
-        yield from self._paginate(self._path, params=params, limit=limit)
+        yield from self._paginate_post(self._path, body=body, limit=limit)
 
     def for_profile(self, profile_id: int) -> list[Vouch]:
         """
@@ -127,6 +168,46 @@ class AsyncVouches(AsyncBaseResource[Vouch]):
         response = await self._http.get(f"{self._path}/{vouch_id}")
         return self._parse_item(response)
 
+    async def _paginate_post(
+        self,
+        path: str,
+        body: dict[str, Any],
+        limit: int = 100,
+    ) -> AsyncIterator[Vouch]:
+        """
+        Async iterate through pages using POST with body params.
+
+        The vouches API uses POST with body instead of GET with query params.
+        """
+        offset = 0
+
+        while True:
+            body["limit"] = limit
+            body["offset"] = offset
+
+            response = await self._http.post(path, json=body)
+
+            # Handle different response formats
+            if isinstance(response, list):
+                items = response
+            elif "data" in response:
+                items = response["data"]
+            elif "values" in response:
+                items = response["values"]
+            else:
+                items = response.get("results", [])
+
+            if not items:
+                break
+
+            for item in items:
+                yield self._parse_item(item)
+
+            if len(items) < limit:
+                break
+
+            offset += limit
+
     async def list(
         self,
         author_profile_id: int | None = None,
@@ -136,18 +217,19 @@ class AsyncVouches(AsyncBaseResource[Vouch]):
         limit: int = 100,
     ) -> AsyncIterator[Vouch]:
         """List vouches with optional filtering."""
-        params: dict[str, Any] = {}
+        body: dict[str, Any] = {}
 
-        if author_profile_id is not None:
-            params["authorProfileId"] = author_profile_id
+        # Build subject/author profile ID lists for POST body
         if target_profile_id is not None:
-            params["subjectProfileId"] = target_profile_id
+            body["subjectProfileIds"] = [target_profile_id]
+        if author_profile_id is not None:
+            body["authorProfileIds"] = [author_profile_id]
         if staked is not None:
-            params["staked"] = staked
+            body["staked"] = staked
         if archived is not None:
-            params["archived"] = archived
+            body["archived"] = archived
 
-        async for vouch in self._paginate(self._path, params=params, limit=limit):
+        async for vouch in self._paginate_post(self._path, body=body, limit=limit):
             yield vouch
 
     async def for_profile(self, profile_id: int) -> list[Vouch]:

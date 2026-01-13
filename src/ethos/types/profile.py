@@ -9,6 +9,22 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class GlobalProfileStats(BaseModel):
+    """
+    Overall profile statistics for the Ethos network.
+
+    Returned by GET /profiles/stats endpoint.
+    """
+
+    active_profiles: int = Field(0, alias="activeProfiles")
+    invites_available: int = Field(0, alias="invitesAvailable")
+
+    model_config = {
+        "populate_by_name": True,
+        "extra": "allow",
+    }
+
+
 class ProfileStats(BaseModel):
     """Statistics about a profile's reviews and vouches."""
 

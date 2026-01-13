@@ -15,14 +15,14 @@ from ethos.types.invitation import (
     InvitationTreeNode,
     InviterProfile,
 )
-from ethos.types.market import Market
+from ethos.types.market import Market, MarketUser
 from ethos.types.notification import (
     Notification,
     NotificationSettings,
     NotificationStats,
 )
 from ethos.types.pagination import PaginatedResponse
-from ethos.types.profile import Profile
+from ethos.types.profile import GlobalProfileStats, Profile
 from ethos.types.reply import Reply, ReplyAuthor
 from ethos.types.review import Review
 from ethos.types.score import Score
@@ -44,9 +44,11 @@ from ethos.types.xp import (
 __all__ = [
     # Core types
     "Profile",
+    "GlobalProfileStats",
     "Vouch",
     "Review",
     "Market",
+    "MarketUser",
     "Activity",
     "Score",
     "PaginatedResponse",
